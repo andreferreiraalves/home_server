@@ -1,0 +1,96 @@
+services:
+  nginx:
+    image: nginx
+    # build: .
+    container_name: nginx
+    restart: unless-stopped    
+    ports:
+      - "3333:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+  vaultwarden:
+    container_name: vaultwarden
+    hostname: vaultwarden
+    image: vaultwarden/server:latest
+    restart: unless-stopped
+    expose:
+      - 80                 # Web UI
+      - 443            # Web UI
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/volume/vaultwarden/data:/data
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80/tcp"
+    environment:
+      TZ: 'America/Sao_Paulo'
+    volumes:
+      - '/mnt/volume/pi_hole/etc-pihole:/etc/pihole'
+      - '/mnt/volume/pi_hole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    cap_add:
+      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped  
+
+  jellyfin:
+    image: linuxserver/jellyfin
+    container_name: jellyfin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+    volumes:
+      - /home/andre/jellyfin_config:/config
+      - /mnt/volume/nextcloud/data/admin/files/media:/data/media
+      - /dev/shm:/transcode
+      - /opt/vc/lib:/opt/vc/lib
+    ports:
+      - 8096:8096
+      - 8920:8920 #optional
+      - 7359:7359/udp #optional
+      - 1900:1900/udp #optional
+    restart: unless-stopped        
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes:
+      - /mnt/volume/qbittorrent/config:/config
+      - /mnt/volume/qbittorrent/downloads:/downloads
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+
+  hbbs:
+    container_name: hbbs
+    image: rustdesk/rustdesk-server:latest
+    command: hbbs
+    volumes:
+      - /home/andre/rustdesk:/root
+    network_mode: "host"
+
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+
+  hbbr:
+    container_name: hbbr
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - /home/andre/rustdesk:/root
+    network_mode: "host"
+    restart: unless-stopped      
