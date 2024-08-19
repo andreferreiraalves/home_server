@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Definir a origem e o destino
-origem="/caminho/para/pasta_de_origem"
-destino="/caminho/para/pasta_de_destino"
+origem="/mnt/volume/nextcloud/data/admin/files"
+destino="/mnt/backup"
 data=$(date '+%Y-%m-%d_%H-%M-%S') # Obter a data atual no formato ano-mês-dia_hora-minuto-segundo
 backup_nome="backup_$data.tar.gz" # Nome do arquivo compactado
 backup_destino="$destino/$backup_nome"
-logfile="$destino/backup_$data.log" # Nome do arquivo de log
+logfile="/home/andre/logs/backup_$data.log" # Nome do arquivo de log
 
 # Função de log
 log() {
@@ -51,3 +51,11 @@ else
     log "Ocorreu um erro durante a cópia."
 fi
 
+# Excluir backups com mais de 3 dias
+log "Excluindo backups com mais de 3 dias"
+find "$destino" -name "backup_*.tar.gz" -type f -mtime +3 -exec rm -f {} \;
+if [ $? -eq 0 ]; then
+    log "Backups antigos excluídos com sucesso."
+else
+    log "Erro ao excluir backups antigos."
+fi
