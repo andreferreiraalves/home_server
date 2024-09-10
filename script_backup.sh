@@ -51,11 +51,11 @@ else
     log "Ocorreu um erro durante a cópia."
 fi
 
-# Excluir backups com mais de 3 dias
-log "Excluindo backups com mais de 3 dias"
-find "$destino" -name "backup_*.tar.gz" -type f -mtime +3 -exec rm -f {} \;
+# Excluir backups e manter apenas os 3 arquivos mais recentes
+log "Excluindo backups antigos e mantendo apenas os 3 mais recentes"
+ls -tp "$destino"/backup_*.tar.gz | grep -v '/$' | tail -n +4 | xargs -I {} rm -- {}
 if [ $? -eq 0 ]; then
-    log "Backups antigos excluídos com sucesso."
+    log "Backups antigos excluídos com sucesso, mantendo apenas os 3 mais recentes."
 else
     log "Erro ao excluir backups antigos."
 fi
